@@ -1,0 +1,31 @@
+name: IMCI-Android-Build
+on: [push, workflow_dispatch] # أضفت زر التشغيل اليدوي
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip build-essential git ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev openjdk-17-jdk
+
+      - name: Install Python Tools
+        run: |
+          pip install --upgrade pip
+          pip install Cython==0.29.33 buildozer
+
+      - name: Build APK
+        run: |
+          # هذا السطر يمنع انقطاع الاتصال المفاجئ
+          export BUILDOZER_ALLOW_ORG_GITHUB_ACTIONS=1
+          yes | buildozer android debug
+        shell: bash
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: IMCI-App-Package
+          path: bin/*.apk
